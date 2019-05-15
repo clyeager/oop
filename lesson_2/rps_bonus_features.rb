@@ -238,16 +238,17 @@ class Human < Player
   def set_name
     n = ""
     loop do
-      system 'clear'
+      system('clear') || system('cls')
       puts "What's your name?"
       n = gets.chomp
-      break unless n.empty?
+      break unless n.empty? || !n.match(/[a-z]/i)
       puts "sorry, must enter a value."
+      sleep 2
     end
     self.name = n
   end
 
-  def best_options
+  def display_best_options
     best = history.determine_best_options
     return nil if best.nil?
     puts "**Your most wins come from choosing either #{best[0]} " \
@@ -274,18 +275,17 @@ class Human < Player
 
   private
 
-  # rubocop:disable Metrics/CyclomaticComplexity
   def determine_choice(choice)
-    return choice unless choice.size < 3
     case choice
     when 'r' then 'rock'
     when 'p' then 'paper'
     when 'sc' then 'scissors'
     when 'sp' then 'spock'
     when 'l' then 'lizzard'
+    else
+      choice
     end
   end
-  # rubocop:enable Metrics/CyclomaticComplexity
 end
 
 class Computer < Player
@@ -321,7 +321,7 @@ class RPSGame
   def display_welcome_message
     puts ''
     puts "**Welcome to Rock, Paper, Scissors #{human.name}!**"
-    puts "**The first to win 10 games is the Grand Champ!"
+    puts "**The first to win #{Player::MAX_SCORE} games is the Grand Champ!"
   end
 
   def display_goodbye_message
@@ -369,9 +369,8 @@ class RPSGame
     ": #{computer.score}"
   end
 
-  def grand_champ
-    return human.name if human.score == Player::MAX_SCORE
-    return computer.name if computer.score == Player::MAX_SCORE
+  def match_ended?
+    human.score == Player::MAX_SCORE || computer.score == Player::MAX_SCORE
   end
 
   def reset
@@ -384,19 +383,19 @@ class RPSGame
 
   def human_champ_message
     puts ''
-    puts "Congrats! Not only did you win this round #{grand_champ}," \
-         " you are also the Grand Champ with 10 wins!"
+    puts "Congrats! Not only did you win this round #{human.name}," \
+         " you are also the Grand Champ with #{Player::MAX_SCORE} wins!"
     puts ''
   end
 
   def computer_champ_message
-    puts "Sorry #{human.name}, the Grand Champ is #{grand_champ} with " \
-         "10 wins! "
+    puts "Sorry #{human.name}, the Grand Champ is #{computer.name} with " \
+         "#{Player::MAX_SCORE} wins! "
   end
 
   def display_grand_champ
-    human_champ_message if grand_champ == human.name
-    computer_champ_message if grand_champ == computer.name
+    human_champ_message if human.score == Player::MAX_SCORE
+    computer_champ_message if computer.score == Player::MAX_SCORE
   end
 
   def play_again?
@@ -407,8 +406,7 @@ class RPSGame
       break if ['y', 'n', 'yes', 'no'].include?(answer.downcase)
       puts "Sorry, must be y or n."
     end
-    return true if answer.downcase.start_with?('y')
-    return false if answer.downcase .start_with?('n')
+    answer.downcase.start_with?('y')
   end
 
   def pause
@@ -417,33 +415,53 @@ class RPSGame
     gets
   end
 
+  def choosing_moves
+    human.choose
+    computer.choose
+  end
+
+  def add_history
+    human.history.add_to_history(human.move.name)
+    computer.history.add_to_history(computer.move.name)
+  end
+
+  def update_history
+    update_human_history
+    update_computer_history
+  end
+
+  def round_gameplay
+    human.display_best_options if human.display_best_options
+    choosing_moves
+    display_moves
+    display_winner
+    increment_score
+    add_history
+    update_history
+  end
+
+  def round_up
+    pause
+    system('clear') || system('cls')
+    display_scores
+    human.history.display_history
+    computer.history.display_history
+    puts ''
+  end
+
   public
 
   def play
     display_welcome_message
 
     loop do
-      human.best_options if human.best_options
-      human.choose
-      computer.choose
-      display_moves
-      display_winner
-      increment_score
-      human.history.add_to_history(human.move.name)
-      computer.history.add_to_history(computer.move.name)
-      update_human_history
-      update_computer_history
-      if grand_champ
+      round_gameplay
+      if match_ended?
         puts display_grand_champ
         reset
         break unless play_again?
       end
-      pause
-      system 'clear'
-      display_scores
-      human.history.display_history
-      computer.history.display_history
-      puts ''
+      round_up
     end
     display_goodbye_message
   end
