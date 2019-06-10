@@ -24,10 +24,6 @@ class WheeledVehicle
   def inflate_tire(tire_index, pressure)
     @tires[tire_index] = pressure
   end
-
-  def range
-    @fuel_capacity * @fuel_efficiency
-  end
 end
 
 class Auto < WheeledVehicle
@@ -45,7 +41,7 @@ class Motorcycle < WheeledVehicle
 end
 
 class WaterVehicles
-  attr_reader :propeller_count, :hull_count
+  attr_reader :num_propellers, :num_hulls
 
   include Moveable
 
@@ -58,9 +54,6 @@ class WaterVehicles
 end
 
 class Catamaran < WaterVehicles
-  def initialize(num_propellers, num_hulls, km_traveled_per_liter, liters_of_fuel_capacity)
-    super
-  end
 end
 
 class Motorboat < WaterVehicles

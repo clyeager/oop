@@ -2,20 +2,53 @@
 #a log being generated
 
 class SecretFile
-
   def initialize(secret_data, log)
     @data = secret_data
     @log = log
   end
 
   def data
-    @log.create_log_entry
+    @log.create_log_entry(Time.now)
     @data
   end
 end
 
 class SecurityLogger
-  def create_log_entry
-    # ... implementation omitted ...
+  def initialize
+    @tracker = []
+  end
+
+  def create_log_entry(time)
+    self.tracker << time
   end
 end
+
+log = SecurityLogger.new
+file = SecretFile.new('hi there', log)
+file.data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

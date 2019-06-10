@@ -24,10 +24,6 @@ class WheeledVehicle
   def inflate_tire(tire_index, pressure)
     @tires[tire_index] = pressure
   end
-
-  def range
-    @fuel_capacity * @fuel_efficiency
-  end
 end
 
 class Auto < WheeledVehicle
