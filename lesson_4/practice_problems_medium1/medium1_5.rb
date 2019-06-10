@@ -32,13 +32,58 @@ puts donut5
 
 class KrispyKreme
   def initialize(filling_type = 'Plain', glazing)
-    @filling_type = filling_type if filling_type != nil
-    @filling_type = 'Plain' if filling_type == nil
+    @filling_type = filling_type || 'Plain'
     @glazing = glazing
   end
 
   def to_s
-    return "#{@filling_type} with #{glazing}" if glazing
+    return "#{@filling_type} with #{@glazing}" if @glazing
     "#{@filling_type}"
   end
 end
+
+puts donut1
+ # => "Plain"
+
+puts donut2
+  #=> "Vanilla"
+
+puts donut3
+  #=> "Plain with sugar"
+
+puts donut4
+  #=> "Plain with chocolate sprinkles"
+
+puts donut5
+  #=> "Custard with icing"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
