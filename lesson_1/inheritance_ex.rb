@@ -136,6 +136,6 @@ p bob.better_grade_than?(greg)
 bob = Person.new
 bob.hi
 
-#There reason there is an error is that the keyword 'private' is above this method, and therefore the method
+#The reason there is an error is that the keyword 'private' is above this method, and therefore the method
 #is not accessible outside of the class. We can fix it by taking out 'private' or creating a public method
 #inside the class that calls the private method from within that class.
