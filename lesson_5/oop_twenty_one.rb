@@ -1,149 +1,8 @@
-class Hand
-  attr_accessor :cards, :score
-
-  def initialize
-    self.cards = []
-  end
-
-  HIGH_SCORE = 21
-  DEALER_HAULT = 17
-  BLACKJACK = 21
-
-  def calculate_score
-    self.score = 0
-    cards.each do |card_obj|
-      self.score += card_obj.value
-    end
-    cards.map(&:face).count(:ace).times do
-      if self.score > HIGH_SCORE
-        self.score -= 10
-      end
-    end
-    score
-  end
-
-  def hand_to_s
-    cards.map(&:to_s).join(' | ')
-  end
-
-  def dealer_card
-    "#{cards[0].face} of #{cards[0].suit}"
-  end
-
-  def >(other_score)
-    score > other_score
-  end
-end
-
-class Player
-  attr_accessor :name, :hand
-
-  def initialize
-    set_name
-    self.hand = Hand.new
-  end
-
-  def busted?
-    hand.score > Hand::HIGH_SCORE
-  end
-
-  def blackjack?
-    hand.score == Hand::BLACKJACK
-  end
-end
-
-class Human < Player
-  def initialize
-    super
-  end
-
-  private
-
-  def set_name
-    loop do
-      system('clear') || system('cls')
-      puts "What is your name?"
-      self.name = gets.chomp.upcase
-      break if name.match(/[a-z]/i)
-      puts "I'm sorry, that is not valid."
-    end
+module Displayable
+  def clear
     system('clear') || system('cls')
   end
-end
 
-class Dealer < Player
-  def initialize
-    super
-  end
-
-  private
-
-  def set_name
-    self.name = ['Toad', 'Mario', 'Luigi', 'Yoshi', 'Peach'].sample
-  end
-end
-
-class Card
-  attr_reader :suit, :face, :value
-
-  def initialize(suit, face)
-    @suit = suit
-    @face = face
-    @value = score
-  end
-
-  def score
-    case face
-    when :ace   then 11
-    when :king  then 10
-    when :queen then 10
-    when :jack  then 10
-    else face
-    end
-  end
-
-  def to_s
-    "#{face} of #{suit}"
-  end
-end
-
-class Deck
-  attr_accessor :cards
-
-  SUITS = [:hearts, :spades, :diamonds, :clubs]
-  FACES = [2, 3, 4, 5, 6, 7, 8] +
-          [9, 10, :jack, :queen, :king, :ace]
-
-  def initialize
-    @cards = new_deck
-  end
-
-  private
-
-  def new_deck
-    cards = {}
-    SUITS.each do |suit|
-      FACES.each do |face|
-        cards.key?(suit) ? cards[suit] << face : cards[suit] = [face]
-      end
-    end
-    cards
-  end
-
-  def remove_card_from_deck(card)
-    cards[card.suit].delete(card.face)
-  end
-
-  public
-
-  def deal_card
-    card = Card.new(cards.keys.sample, cards.values.flatten.sample)
-    remove_card_from_deck(card)
-    card
-  end
-end
-
-module Displayable
   def display_welcome_message
     puts "Welcome to Twenty-One #{human.name}! Your dealer is " \
     "#{dealer.name}. Good luck!"
@@ -239,22 +98,177 @@ module Displayable
   end
 end
 
-class Game
-  attr_accessor :human, :dealer, :deck
+class Hand
+  attr_accessor :cards, :score
 
+  include Comparable
+
+  HIGH_SCORE = 21
+  DEALER_HAULT = 17
+  BLACKJACK = 21
+
+  def initialize
+    self.cards = []
+  end
+
+  def calculate_score
+    self.score = 0
+    cards.each do |card_obj|
+      self.score += card_obj.value
+    end
+    cards.map(&:face).count(:ace).times do
+      if self.score > HIGH_SCORE
+        self.score -= 10
+      end
+    end
+    score
+  end
+
+  def hand_to_s
+    cards.map(&:to_s).join(' | ')
+  end
+
+  def dealer_card
+    "#{cards[0].face} of #{cards[0].suit}"
+  end
+
+  def <=>(other_hand)
+    score <=> other_hand.score
+  end
+end
+
+class Player
+  attr_accessor :name, :hand
+
+  def initialize
+    set_name
+    self.hand = Hand.new
+  end
+
+  def busted?
+    hand.score > Hand::HIGH_SCORE
+  end
+
+  def blackjack?
+    hand.score == Hand::BLACKJACK
+  end
+end
+
+class Human < Player
   include Displayable
 
   def initialize
-    self.human = Human.new
-    self.dealer = Dealer.new
-    self.deck = Deck.new
+    super
   end
 
   private
 
-  def clear
-    system('clear') || system('cls')
+  def set_name
+    loop do
+      clear
+      puts "What is your name?"
+      self.name = gets.chomp.upcase
+      break if name.match(/[a-z]/i)
+      puts "I'm sorry, that is not valid."
+      sleep(3)
+    end
+    clear
   end
+end
+
+class Dealer < Player
+  def initialize
+    super
+  end
+
+  private
+
+  def set_name
+    self.name = ['Toad', 'Mario', 'Luigi', 'Yoshi', 'Peach'].sample
+  end
+end
+
+class Card
+  attr_reader :suit, :face, :value
+
+  def initialize(suit, face)
+    @suit = suit
+    @face = face
+    @value = score
+  end
+
+  def score
+    case face
+    when :ace   then 11
+    when :king  then 10
+    when :queen then 10
+    when :jack  then 10
+    else face
+    end
+  end
+
+  def to_s
+    "#{face} of #{suit}"
+  end
+end
+
+class Deck
+  attr_accessor :cards
+
+  SUITS = [:hearts, :spades, :diamonds, :clubs]
+  FACES = [2, 3, 4, 5, 6, 7, 8] +
+          [9, 10, :jack, :queen, :king, :ace]
+
+  def initialize
+    @cards = new_deck
+  end
+
+  def deal_card
+    card = Card.new(cards.keys.sample, cards.values.flatten.sample)
+    remove_card_from_deck(card)
+    card
+  end
+
+  private
+
+  def new_deck
+    cards = {}
+    SUITS.each do |suit|
+      FACES.each do |face|
+        cards.key?(suit) ? cards[suit] << face : cards[suit] = [face]
+      end
+    end
+    cards
+  end
+
+  def remove_card_from_deck(card)
+    cards[card.suit].delete(card.face)
+  end
+end
+
+class Game
+  include Displayable
+
+  def initialize
+    @human = Human.new
+    @dealer = Dealer.new
+    @deck = Deck.new
+  end
+
+  def play
+    display_welcome_message
+    loop do
+      mid_round_loop
+      break unless play_again?
+      reset
+    end
+    display_goodbye_message
+  end
+
+  private
+
+  attr_reader :human, :dealer
+  attr_accessor :deck
 
   def initial_deal
     2.times { |_| dealer.hand.cards << deck.deal_card }
@@ -274,7 +288,7 @@ class Game
     answer = nil
     loop do
       puts ''
-      puts "Would you like to hit or stay?"
+      puts "Would you like to hit or stay (h/s)?"
       answer = gets.chomp.downcase
       break if ['hit', 'h', 'stay', 's'].include?(answer)
     end
@@ -326,11 +340,11 @@ class Game
   end
 
   def human_won?
-    human.hand > dealer.hand.score
+    human.hand > dealer.hand
   end
 
   def dealer_won?
-    dealer.hand > human.hand.score
+    dealer.hand > human.hand
   end
 
   def play_again?
@@ -377,18 +391,6 @@ class Game
     self.deck = Deck.new
     human.hand = Hand.new
     dealer.hand = Hand.new
-  end
-
-  public
-
-  def play
-    display_welcome_message
-    loop do
-      mid_round_loop
-      break unless play_again?
-      reset
-    end
-    display_goodbye_message
   end
 end
 
